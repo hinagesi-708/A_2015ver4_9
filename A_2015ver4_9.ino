@@ -25,12 +25,15 @@
 #define SECOND_WALL     340
 #define THIRD_WALL      240
 #define FOURTH_WALL     140
-#define FIFTH_WALL      1
+// #define FIFTH_WALL      1
+#define FIFTH_WALL      40		//(2015_10_13)cho
+// #define STOP_WALL		40		//(2015_10_13)cho
 #define FIRST_SPEED     60 //モータの速さの絶対値
 #define SECOND_SPEED    50
 #define THIRD_SPEED     40
 #define FOURTH_SPEED    30
 #define FIFTH_SPEED     15
+#define STOP_SPEED		0		//(2015_10_13)cho
 #define TURN_SPEED      40
 #define TARGET_DISTANCE_X 4775  //X軸のマシンの位置の目標値
 #define TARGET_DISTANCE_Y 50    //Y軸のマシンの位置の目標値
@@ -161,6 +164,7 @@ signed char speed_data(){         //速さと壁との距離はdefineで設定�
         break;
       }
     }
+    /*
     while(1){
       OnlySonar.receive2(); //X軸の超音波センサ
       cho_data[0] = OnlySonar.read_char(0);
@@ -172,7 +176,9 @@ signed char speed_data(){         //速さと壁との距離はdefineで設定�
       else{ //そうでなければbreak
         break;
       }
-    }
+    }*/
+    only_data = FIRST_WALL;		//(2015_10_13)cho 現時点でOnlySonarがマシンに設置されていないので省略
+
     if((left_data >= FIRST_WALL) && (right_data >= FIRST_WALL) && (only_data >= FIRST_WALL)){ //400mm以上減速しない
       motor_data = FIRST_SPEED; //最高速
     }
@@ -185,12 +191,14 @@ signed char speed_data(){         //速さと壁との距離はdefineで設定�
     else if(((left_data >= FOURTH_WALL) && (left_data < THIRD_WALL)) || ((right_data >= FOURTH_WALL) && (right_data < THIRD_WALL)) || ((only_data >= FOURTH_WALL) && (only_data < THIRD_WALL))){    //第3段階　100mm以上200mm未満
       motor_data = FOURTH_SPEED;  //第四速
     }
-    else if(((left_data >= FIFTH_WALL) && (left_data < FOURTH_WALL)) || ((right_data >= FIFTH_WALL) && (right_data < FOURTH_WALL)) || ((only_data >= FIFTH_WALL) && (only_data < FOURTH_WALL))){    //第4段階　1mm以上100mm未満
+    else if(((left_data >= FIFTH_WALL) && (left_data < FOURTH_WALL)) || ((right_data >= FIFTH_WALL) && (right_data < FOURTH_WALL)) || ((only_data >= FIFTH_WALL) && (only_data < FOURTH_WALL))){    //第4段階　1mm以上100mm未満 40mm以上100mm未満 //(2015_10_13)cho
       motor_data = FIFTH_SPEED; //第五速（死ぬほど遅い）
+    }else if(left_data <= FIFTH_WALL || right_data <= FIFTH_WALL){		//(2015_10_13)cho
+      motor_data = STOP_SPEED;	//停止
     }
     
     else{ //0以下
-
+   	  motor_data = STOP_SPEED; //停止 //(2015_10_13)cho
     }
   }
   else{ //超音波センサをテストしないとき
@@ -297,7 +305,8 @@ void loop(){
     //移動処理　マイクロスイッチでの壁との接触判定無し　　自動操縦移動角度未定義
     case GO_STRAIGHT:
       Serial.println("GO_ST");
-      motor_speed = speed_data();
+      // motor_speed = speed_data();
+      motor_speed = FIRST_SPEED;		//(2015_10_13)cho
       motor_save_speed = motor_speed;
       motor_save_vector = 8;
       motor_low_count = MOTOR_COUNT;
@@ -321,7 +330,8 @@ void loop(){
 
     case LEFT:
       Serial.println("GO_LE");
-      motor_speed = speed_data();
+      // motor_speed = speed_data();
+      motor_speed = FIRST_SPEED;		//(2015_10_13)cho
       motor_save_speed = motor_speed;
       motor_save_vector = 4;
       motor_low_count = MOTOR_COUNT;
@@ -333,7 +343,8 @@ void loop(){
 
     case RIGHT:
       Serial.println("GO_RI");
-      motor_speed = speed_data();
+      // motor_speed = speed_data();
+      motor_speed = FIRST_SPEED;		//(2015_10_13)cho
       motor_save_speed = motor_speed;
       motor_save_vector = 6;
       motor_low_count = MOTOR_COUNT;
@@ -345,7 +356,8 @@ void loop(){
 
     case GO_45: //右ナナメ前
       Serial.println("GO_45");
-      motor_speed = speed_data();
+      // motor_speed = speed_data();
+      motor_speed = FIRST_SPEED;		//(2015_10_13)cho
       motor_save_speed = motor_speed;
       motor_save_vector = 9;
       motor_low_count = MOTOR_COUNT;
@@ -357,7 +369,8 @@ void loop(){
 
     case GO_135: //左ナナメ前
       Serial.println("GO_135");
-      motor_speed = speed_data();
+      // motor_speed = speed_data();
+      motor_speed = FIRST_SPEED;		//(2015_10_13)cho
       motor_save_speed = motor_speed;
       motor_save_vector = 7;
       motor_low_count = MOTOR_COUNT;
@@ -393,7 +406,8 @@ void loop(){
 
     case TURN_LEFT: //旋回(反時計回り)
       Serial.println("TU_LE");
-      motor_speed = speed_data();
+      // motor_speed = speed_data();
+      motor_speed = FIRST_SPEED;		//(2015_10_13)cho
       motor_save_speed = motor_speed;
       motor_save_vector = 12;
       motor_low_count = MOTOR_COUNT;
@@ -405,7 +419,8 @@ void loop(){
 
     case TURN_RIGHT: //旋回(時計回り)
       Serial.println("TU_RI");
-      motor_speed = speed_data();
+      // motor_speed = speed_data();
+      motor_speed = FIRST_SPEED;		//(2015_10_13)cho
       motor_save_speed = motor_speed;
       motor_save_vector = 24;
       motor_low_count = MOTOR_COUNT;
@@ -491,7 +506,7 @@ void loop(){
               }
             }
           }//whileフェンス平行
-          while(check_auto){  //次にOnlySonarを使ってX軸の位置合わせをする
+          /*while(check_auto){  //次にOnlySonarを使ってX軸の位置合わせをする		//OnlySonarはまだマシンに取り付けらえれていないのでいったん省略		
             controler.receive4();
             rc_data[0] = controler.read_char(0);
             if(rc_data[0] != AUTO_CONTROL){ //コントローラーから自動操縦以外の通信があったら中断する
@@ -499,7 +514,8 @@ void loop(){
               check_auto = 0;
               break;
             }
-            else{
+            /*
+            else{			
               while(1){
                 OnlySonar.receive2();
                 s_cho_data[0] = OnlySonar.read_char(0);
@@ -513,7 +529,7 @@ void loop(){
                 }
               }
               abs_data = abs(s_only_data - TARGET_DISTANCE_X);  //絶対値（absolute）を取る
-              if(abs_data > 5){ //+-5ミリで平行ならbreakして次の処理へ
+              if(abs_data > 5){ //+-5ミリでならbreakして次の処理へ
                 motor1.s_send1(0);
                 motor2.s_send1(0);
                 motor3.s_send1(0);
@@ -537,7 +553,7 @@ void loop(){
                 }
               }
             }
-          }
+          }*/
           while(check_auto){
             controler.receive4();
             rc_data[0] = controler.read_char(0);
@@ -569,15 +585,16 @@ void loop(){
                 break;
               }
               else{
-                if(average_data > TARGET_DISTANCE_Y){   //前に
-                  motor_speed = 30;
+                if(average_data > TARGET_DISTANCE_Y){   //後ろに
+                  motor_speed = 30;			//柵に近づくとき40mm以下になったらモーター止めるとかしないといけないから．．．
+                  if(average_data <= 40) motor_speed = 0; 	//(2015_10_13)cho
                   motor1.s_send1(-motor_speed);
                   motor2.s_send1(motor_speed);
                   motor3.s_send1(motor_speed);
                   motor4.s_send1(-motor_speed);
                 }
-                else if(TARGET_DISTANCE_Y < average_data){  //後ろに
-                  motor_speed = 30;
+                else if(TARGET_DISTANCE_Y > average_data){  //前に
+                  motor_speed = 30;			//柵から離れるときはスピード30のままでおｋ
                   motor1.s_send1(motor_speed);
                   motor2.s_send1(-motor_speed);
                   motor3.s_send1(-motor_speed);
